@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>搜影吧</title>
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Noto+Sans+TC"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="vbody pt-3" :style="backdropImg">
+        <header class="mb-3">
+          <div class="container text-center">
+            <h1 class="text-white my-3">搜影吧🎬</h1>
+            <template>{{ check }}</template>
+            <div
+              class="d-flex flex-column flex-md-row justify-content-center align-items-center"
+            >
+              <form class="form-inline">
+                <label class="text-white mb-2 mr-2">-上映日(從)</label>
+                <select class="form-control mb-2 mr-sm-2" v-model="fromYear">
+                  <option value="" disabled selected>年</option>
+                  <option value="2010">2010</option>
+                  <option value="2011">2011</option>
+                  <option value="2012">2012</option>
+                  <option value="2013">2013</option>
+                  <option value="2014">2014</option>
+                  <option value="2015">2015</option>
+                  <option value="2016">2016</option>
+                  <option value="2017">2017</option>
+                  <option value="2018">2018</option>
+                </select>
+                <select class="form-control mb-2 mr-sm-2" v-model="fromMonth">
+                  <option value="" disabled selected>月</option>
+                  <option value="01">1</option>
+                  <option value="02">2</option>
+                  <option value="03">3</option>
+                  <option value="04">4</option>
+                  <option value="05">5</option>
+                  <option value="06">6</option>
+                  <option value="07">7</option>
+                  <option value="08">8</option>
+                  <option value="09">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                </select>
+              </form>
+              <form class="form-inline">
+                <label class="text-white mb-2 mr-2">-上映日(到)</label>
+                <select class="form-control mb-2 mr-sm-2" v-model="toYear">
+                  <option value="" disabled selected>年</option>
+                  <option value="2010">2010</option>
+                  <option value="2011">2011</option>
+                  <option value="2012">2012</option>
+                  <option value="2013">2013</option>
+                  <option value="2014">2014</option>
+                  <option value="2015">2015</option>
+                  <option value="2016">2016</option>
+                  <option value="2017">2017</option>
+                  <option value="2018">2018</option>
+                </select>
+                <select class="form-control mb-2 mr-sm-2" v-model="toMonth">
+                  <option value="" disabled selected>月</option>
+                  <option value="01">1</option>
+                  <option value="02">2</option>
+                  <option value="03">3</option>
+                  <option value="04">4</option>
+                  <option value="05">5</option>
+                  <option value="06">6</option>
+                  <option value="07">7</option>
+                  <option value="08">8</option>
+                  <option value="09">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                </select>
+              </form>
+              <form class="form-inline">
+                <label class="text-warning mb-2 mr-2">-年度最受歡迎</label>
+                <select class="form-control mb-2 mr-sm-2" v-model="yearBest">
+                  <option value="" selected>年</option>
+                  <option value="2010">2010</option>
+                  <option value="2011">2011</option>
+                  <option value="2012">2012</option>
+                  <option value="2013">2013</option>
+                  <option value="2014">2014</option>
+                  <option value="2015">2015</option>
+                  <option value="2016">2016</option>
+                  <option value="2017">2017</option>
+                  <option value="2018">2018</option>
+                </select>
+              </form>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-lg mb-2 mx-2"
+                  @click="fetchData"
+                >
+                  搜
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-success btn-lg mb-2"
+                  v-if="fetchResults.length"
+                  @click="sortStart = true"
+                >
+                  排名
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-info mb-2"
+                  data-toggle="modal"
+                  data-target="#exampleModal"
+                >
+                  關於作者
+                </button>
+              </div>
+            </div>
+            <div class="h4 text-danger" v-show="!checkPass && yearBest === ''">
+              *請輸入正確日期*
+            </div>
+          </div>
+        </header>
+
+        <div class="container">
+          <div class="row">
+            <div
+              class="col-lg-2 col-md-4 col-sm-6 text-center movie"
+              v-for="obj in sortRate"
+            >
+              <img
+                :src="`https://image.tmdb.org/t/p/w154${obj.poster_path}`"
+                alt=""
+                class="img-fluid mb-1"
+                @click="backdrop(obj.backdrop_path)"
+              />
+              <p class="text-white">{{ obj.title }}</p>
+              <p class="text-muted">{{ obj.original_title }}</p>
+              <p class="text-danger">
+                <span v-if="obj.vote_average <= 6">⭐️</span>
+                <span v-if="obj.vote_average <= 7 && 6 < obj.vote_average"
+                  >⭐️⭐️</span
+                >
+                <span v-if="obj.vote_average <= 8 && 7 < obj.vote_average"
+                  >⭐️⭐️⭐️</span
+                >
+                <span v-if="obj.vote_average <= 9 && 8 < obj.vote_average"
+                  >⭐️⭐️⭐️⭐️</span
+                >
+                <span v-if="obj.vote_average > 9">⭐️⭐️⭐️⭐️⭐️</span>
+                {{ obj.vote_average }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="py-4 text-center text-white">
+          © <span id="currentYear"></span> Copyright: 阿亮<br />
+          <span class="text-muted">搜影吧v1.0</span>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">作者的話</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex">
+              <img src="img/author.jpg" alt="author pic" />
+              <div class="ml-2 text-left">
+                <h5>各位好,</h5>
+                <h5>我是阿亮,</h5>
+                <h5>首先非常感謝您的使用,</h5>
+                <h5>現在立刻使用手機將網址加到主畫面,</h5>
+                <h5>當您正想看電影時,</h5>
+                <h5>點進去立馬開始搜尋強檔好片!</h5>
+                <h5>好了 祝大家看電影愉快!!!</h5>
+                <h5 class="text-white">*未來將維持更新帶來更好的使用者體驗</h5>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="modal-footer"></div> -->
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+      integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      var apiKey = "763a001f24857cb0f7e32293197e505a";
+
+      const app = new Vue({
+        el: "#app",
+        data: {
+          hello: "hello world",
+          fetchResults: [],
+          fromYear: "",
+          fromMonth: "",
+          toYear: "",
+          toMonth: "",
+          checkPass: Boolean,
+          sortStart: false,
+          backdropImage: "",
+          yearBest: ""
+        },
+        methods: {
+          async fetchData() {
+            if (this.checkPass === true && this.yearBest === "") {
+              var url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&primary_release_date.gte=${
+                this.fromYear
+              }-${this.fromMonth}&primary_release_date.lte=${this.toYear}-${
+                this.toMonth
+              }&language=zh&region=US`;
+              this.fetchResults = await fetch(url)
+                .then(function(res) {
+                  return res.json();
+                })
+                .then(function(data) {
+                  var results = data.results;
+                  // console.log(results);
+                  return data.results;
+                })
+                .catch(function(error) {
+                  console.log(error);
+                });
+              console.log(this.fetchResults);
+            } else if (this.yearBest !== "") {
+              var urlYearBest = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=zh&region=US&sort_by=popularity.desc&year=${
+                this.yearBest
+              }`;
+              this.fetchResults = await fetch(urlYearBest)
+                .then(function(res) {
+                  return res.json();
+                })
+                .then(function(data) {
+                  var results = data.results;
+                  // console.log(results);
+                  return data.results;
+                })
+                .catch(function(error) {
+                  console.log(error);
+                });
+              console.log(this.fetchResults);
+            }
+          },
+          backdrop(imgpath) {
+            this.backdropImage =
+              "https://image.tmdb.org/t/p/original" + imgpath;
+            console.log(this.backdropImage);
+          },
+          test() {
+            console.log("hello");
+          }
+        },
+        computed: {
+          check() {
+            if (Number(this.fromYear) > Number(this.toYear)) {
+              this.checkPass = false;
+            } else if (
+              Number(this.fromYear) === Number(this.toYear) &&
+              Number(this.fromMonth) > Number(this.toMonth)
+            ) {
+              this.checkPass = false;
+            } else if (
+              this.fromYear === "" ||
+              this.fromMonth === "" ||
+              this.toYear === "" ||
+              this.toMonth === ""
+            ) {
+              this.checkPass = false;
+            } else {
+              this.checkPass = true;
+            }
+          },
+          sortRate() {
+            if (this.sortStart === false) {
+              return this.fetchResults;
+            } else if (this.sortStart === true) {
+              var sortArray = this.fetchResults;
+              sortArray.sort(function(a, b) {
+                return b.vote_average - a.vote_average;
+              });
+
+              this.sortStart = false;
+              return sortArray;
+            }
+          },
+          backdropImg() {
+            if (this.backdropImage !== "") {
+              return `background: url(${this.backdropImage});`;
+            }
+          }
+        }
+      });
+    </script>
+    <script>
+      $(function() {
+        $("#currentYear").text(new Date().getFullYear());
+      });
+    </script>
+  </body>
+</html>
